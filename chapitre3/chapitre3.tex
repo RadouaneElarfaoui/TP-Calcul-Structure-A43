@@ -1,0 +1,156 @@
+\chapter{Modélisation d'une poutre trouée en élastoplasticité}
+
+\section{Introduction}
+La compréhension de la distribution des contraintes dans les structures mécaniques est essentielle pour garantir leur intégrité. Les discontinuités géométriques, telles que les trous, sont des sources majeures de concentration de contraintes qui peuvent mener à une plastification locale, voire à la rupture, bien avant que la contrainte nominale n'atteigne la limite élastique du matériau.
+
+Dans ce chapitre, nous étudions le comportement d'une poutre rectangulaire percée d'un trou circulaire, soumise à une sollicitation de flexion. L'objectif est de modéliser cette structure en 2D en utilisant un comportement élasto-plastique, afin de prédire la zone de plastification et d'analyser les déplacements.
+
+\section{Étude Théorique et Analytique}
+
+\subsection{Description du problème}
+On considère une poutre de section rectangulaire avec les dimensions suivantes :
+\begin{itemize}
+    \item Longueur : $L = 610$ mm
+    \item Hauteur : $h = 102$ mm
+    \item Épaisseur : $b = 25,4$ mm
+    \item Rayon du trou : $R = 26$ mm (Diamètre $D = 52$ mm)
+\end{itemize}
+
+Le matériau est un acier homogène et isotrope avec une limite d'élasticité $\sigma_y = 210$ MPa.
+
+\begin{figure}[H]
+    \centering
+    % Comme on a défini \graphicspath dans main.tex, on peut juste mettre le nom du fichier
+    % Ou le chemin relatif complet : chapitre3/src/page2_img-0.jpeg.jpeg
+    \includegraphics[width=0.8\textwidth]{page2_img-0.jpeg.jpeg}
+    \caption{Géométrie de la poutre trouée.}
+    \label{fig:geo}
+\end{figure}
+
+\subsection{Calcul des propriétés de section}
+L'affaiblissement de la section dû au trou entraîne une réduction du moment d'inertie quadratique.
+Pour une section rectangulaire pleine ($I_{brut}$), le moment d'inertie par rapport à l'axe neutre est :
+$$ I_{brut} = \frac{b \cdot h^3}{12} = \frac{25,4 \cdot 102^3}{12} \approx 2\,247\,258 \text{ mm}^4 $$
+
+Au niveau du trou, la section transversale est réduite. Le moment d'inertie net ($I_{net}$) se calcule en soustrayant l'inertie de la matière enlevée (rectangle de hauteur $D$ et largeur $b$) :
+$$ I_{net} = \frac{b(h^3 - D^3)}{12} = \frac{25,4(102^3 - 52^3)}{12} \approx 1\,948\,600 \text{ mm}^4 $$
+
+\subsection{Contraintes et Plasticité}
+En théorie des poutres simple (Navier-Bernoulli), la contrainte normale est donnée par $\sigma = \frac{M \cdot y}{I}$. Cependant, la présence du trou induit un effet de concentration de contraintes caractérisé par un coefficient $K_t$.
+La contrainte maximale réelle est donc :
+$$ \sigma_{max} = K_t \cdot \sigma_{nominale} $$
+Si $\sigma_{max} > \sigma_y$, le matériau entre dans le domaine plastique. C'est ce phénomène que nous allons vérifier par simulation numérique.
+
+\subsection{Calcul du Moment Plastique ($M_p$)}
+Le moment plastique représente la capacité ultime de la section avant la formation d'une rotule plastique complète. Pour une section rectangulaire, il est défini par :
+$$ M_p = \sigma_y \cdot Z $$
+Où $Z$ est le module plastique de la section :
+$$ Z = \frac{b \cdot h^2}{4} = \frac{25,4 \cdot 102^2}{4} \approx 66\,065 \text{ mm}^3 $$
+D'où le moment limite théorique :
+$$ M_p = 210 \times 66\,065 \approx 13,87 \cdot 10^6 \text{ N.mm} = 13,87 \text{ kNm} $$
+Ce calcul nous permet de connaître la charge limite théorique que la poutre peut supporter avant ruine totale.
+
+\subsection{Estimation du Facteur de Concentration de Contraintes ($K_t$)}
+Pour une plaque de largeur $h$ percée d'un trou de diamètre $D$, le rapport est :
+$$ \frac{D}{h} = \frac{52}{102} \approx 0,51 $$
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{abaque_kt.png}
+    \caption{Abaque de concentration de contraintes pour une plaque trouée en traction (similaire pour la flexion).}
+    \label{fig:abaque}
+\end{figure}
+
+D'après l'abaque ci-dessus (Figure \ref{fig:abaque}) pour un rapport $d/h \approx 0,5$, le coefficient de concentration de contraintes est approximativement :
+$$ K_t \approx 2,15 $$
+Cela signifie que la contrainte locale au bord du trou sera plus de deux fois supérieure à la contrainte nominale calculée loin du trou. C'est ce facteur qui explique pourquoi la plasticité apparaît prématurément.
+
+\section{Modélisation Numérique (Abaqus)}
+
+\subsection{Hypothèses de modélisation}
+Pour cette simulation, nous utilisons les hypothèses suivantes :
+\begin{itemize}
+    \item \textbf{Espace} : Modélisation 2D en Contraintes Planes (Plane Stress), car l'épaisseur ($b$) est faible devant les autres dimensions.
+    \item \textbf{Comportement} : Élasto-plastique isotrope.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{page3_img-1.jpeg.jpeg}
+    \caption{Définition du comportement du matériau dans le logiciel.}
+    \label{fig:mat}
+\end{figure}
+
+\subsection{Maillage}
+Le maillage est une étape critique. Une densité d'éléments plus élevée est appliquée autour du trou pour capturer précisément le gradient de contraintes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{page6_img-2.jpeg.jpeg}
+    \caption{Maillage de la structure avec raffinement autour du perçage.}
+    \label{fig:mesh}
+\end{figure}
+
+\section{Résultats et Analyse}
+
+\subsection{Distribution des Contraintes de Von Mises}
+L'analyse statique nous permet d'obtenir la carte des contraintes de Von Mises. On observe clairement une concentration de contraintes aux pôles du trou.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{page7_img-3.jpeg.jpeg}
+    \caption{Champ de contraintes de Von Mises. La zone rouge indique les contraintes maximales.}
+    \label{fig:vm}
+\end{figure}
+
+La valeur maximale relevée est d'environ \textbf{214 MPa}, ce qui dépasse légèrement la limite élastique ($\sigma_y = 210$ MPa). Cela confirme l'apparition de micro-plastifications locales, un phénomène impossible à prédire avec un simple calcul élastique manuel.
+
+\subsection{Analyse des Déplacements}
+Nous avons tracé l'évolution des déplacements le long de la poutre (chemin défini sur la ligne neutre ou la fibre supérieure).
+
+\subsubsection*{Déplacement Horizontal (U1)}
+Le déplacement longitudinal U1 montre une discontinuité de pente au niveau du trou, signe de la perturbation du champ de déformation.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{page8_img-4.jpeg.jpeg}
+        \caption{Chemin de mesure}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{page8_img-5.jpeg.jpeg}
+        \caption{Graphe de U1}
+    \end{subfigure}
+    \caption{Analyse du déplacement horizontal.}
+    \label{fig:u1}
+\end{figure}
+
+\subsubsection*{Déplacement Vertical (U2) - Flèche}
+Le déplacement vertical U2 atteint son maximum (en valeur absolue) près du centre. La courbe présente un "V" caractéristique dû à la perte de rigidité locale au niveau du trou.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{page9_img-6.jpeg.jpeg}
+    \caption{Évolution du déplacement vertical (Flèche) le long de la poutre.}
+    \label{fig:u2}
+\end{figure}
+
+\section{Comparaison et Validation Simplifiée (RDM7)}
+Pour valider l'ordre de grandeur de nos résultats, une simulation rapide en élasticité linéaire a été réalisée sur RDM7. Bien que ce modèle ne prenne pas en compte la plasticité, il confirme la localisation des contraintes maximales.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.45\textwidth]{page12_img-14.jpeg.jpeg}
+    \includegraphics[width=0.45\textwidth]{page11_img-9.jpeg.jpeg}
+    \caption{Résultats comparatifs sur RDM7 (Contraintes et chargement).}
+    \label{fig:rdm7}
+\end{figure}
+
+\section{Conclusion}
+Cette étude a permis de mettre en évidence l'importance de la modélisation numérique pour les pièces de géométrie complexe. Nous avons montré que :
+\begin{enumerate}
+    \item Le trou réduit l'inertie de la section et crée une concentration de contraintes significative.
+    \item Le calcul théorique simple sous-estime la contrainte réelle locale.
+    \item La simulation Abaqus confirme le dépassement de la limite élastique (210 MPa), justifiant l'utilisation d'un modèle élasto-plastique pour dimensionner correctement la pièce.
+\end{enumerate}

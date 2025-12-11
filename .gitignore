@@ -1,0 +1,20 @@
+# LaTeX temporaries
+*.aux
+*.log
+*.toc
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.dvi
+*.bbl
+*.blg
+*.lof
+*.lot
+
+# PDF files (optionnel : garde-le si tu veux versionner le rapport final, commente-le sinon)
+# *.pdf
+
+# OS junk
+.DS_Store
+Thumbs.db

@@ -1,0 +1,33 @@
+\documentclass[12pt, a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{times}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\geometry{hmargin=2.5cm,vmargin=2.5cm}
+
+% Configuration des chemins d'images (Optionnel, mais pratique)
+% Cela permet à LaTeX de chercher les images dans ces dossiers
+\graphicspath{{src/}{chapitre1/src/}{chapitre2/src/}{chapitre3/src/}}
+
+\title{\textbf{Rapport de Calcul de Structure}}
+\author{Votre Nom}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+% Inclusion des chapitres
+\include{chapitre1/chapitre1}
+\include{chapitre2/chapitre2}
+\include{chapitre3/chapitre3}
+
+\end{document}
