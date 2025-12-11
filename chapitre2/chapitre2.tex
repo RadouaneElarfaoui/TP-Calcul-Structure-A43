@@ -1,6 +1,118 @@
-\chapter{Chapitre 2}
-% Ce fichier contient le texte du chapitre 2
-% Mettez vos images dans chapitre2/src/
+\chapter{Étude statique d'un treillis plan}
 
-\section{Développement}
-Ceci est le deuxième chapitre (vide pour l'instant).
+\section{Introduction}
+Les structures en treillis sont largement utilisées en génie civil et mécanique pour leur excellent rapport rigidité/poids. L'objectif de ce chapitre est d'analyser un treillis plan à 7 barres soumis à une charge ponctuelle.
+Nous comparerons les résultats obtenus par trois approches :
+\begin{enumerate}
+    \item Une résolution analytique manuelle (Méthode des nœuds).
+    \item Une simulation numérique par éléments finis sous Abaqus.
+    \item Une vérification rapide via le logiciel RDM7.
+\end{enumerate}
+
+\section{Description du problème}
+\subsection{Géométrie et Matériau}
+Le treillis étudié est une structure symétrique composée de 7 barres articulées.
+\begin{itemize}
+    \item \textbf{Géométrie} : Forme en ''V'' inversé (voir Figure \ref{fig:geo_tp2}).
+    \item \textbf{Section} : Barres circulaires pleines de diamètre $d = 5$ mm.
+    \item \textbf{Matériau} : Acier élastique isotrope ($E = 210$ GPa, $\nu = 0.3$).
+    \item \textbf{Chargement} : Force verticale $F = 10\,000$ N appliquée au nœud central supérieur.
+    \item \textbf{Conditions aux limites} : Appuis simples (rotules) aux extrémités inférieures.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{page1_img-0.jpeg.jpeg}
+    \caption{Schéma du treillis étudié.}
+    \label{fig:geo_tp2}
+\end{figure}
+
+\subsection{Propriétés de la section}
+L'aire de la section transversale $S$ de chaque barre est :
+$$ S = \frac{\pi \cdot d^2}{4} = \frac{\pi \cdot (5 \times 10^{-3})^2}{4} \approx 1,963 \times 10^{-5} \text{ m}^2 = 19,63 \text{ mm}^2 $$
+
+\section{Résolution Analytique}
+En raison de la symétrie de la structure et du chargement, les réactions aux appuis sont identiques :
+$$ R_A = R_B = \frac{F}{2} = \frac{10\,000}{2} = 5\,000 \text{ N} $$
+
+\subsection{Calcul des efforts normaux}
+En isolant le nœud central (C) et en projetant les forces selon l'axe vertical, on peut déterminer l'effort dans les barres inclinées ($N_{CD}$ et $N_{CE}$). L'angle avec l'horizontale est de $60^\circ$.
+
+$$ 2 \cdot N_{CD} \cdot \sin(60^\circ) = F $$
+$$ N_{CD} = \frac{10\,000}{2 \cdot \sin(60^\circ)} \approx 5\,773,5 \text{ N} $$
+Ces barres sont en \textbf{traction}.
+
+Pour les barres horizontales inférieures ($N_{BC}$ et $N_{CA}$), l'équilibre horizontal donne :
+$$ N_{CA} = N_{CD} \cdot \cos(60^\circ) = 5\,773,5 \times 0,5 \approx 2\,886,7 \text{ N} $$
+Ces barres travaillent en \textbf{compression}.
+
+\subsection{Contraintes théoriques}
+La contrainte normale maximale se trouve dans les barres les plus chargées (5773,5 N) :
+$$ \sigma_{max} = \frac{N_{max}}{S} = \frac{5773,5}{19,63} \approx 294,1 \text{ MPa} $$
+
+\section{Modélisation Numérique (Abaqus)}
+
+\subsection{Mise en données}
+Le modèle a été construit en suivant les étapes clés de la méthode des éléments finis :
+\begin{itemize}
+    \item \textbf{Part} : Création d'une géométrie filaire (Wire) 2D Planar.
+    \item \textbf{Property} : Définition d'une section de type \textit{Truss} (Treillis), assignée à toutes les barres.
+    \item \textbf{Load/BC} : Blocage des déplacements $U1, U2$ aux appuis et application de la force nodale concentrée de -10kN suivant Y.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{page3_img-1.jpeg.jpeg}
+    \caption{Modèle géométrique dans Abaqus.}
+    \label{fig:abaqus_model}
+\end{figure}
+
+\subsection{Maillage}
+Le maillage utilise des éléments de type \textbf{T2D2} (Truss, 2-node, 2D), spécifiques aux barres ne travaillant qu'en traction-compression (pas de flexion).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{page12_img-8.jpeg.jpeg}
+    \caption{Structure maillée.}
+    \label{fig:mesh_tp2}
+\end{figure}
+
+\subsection{Résultats de simulation}
+\subsubsection{Contraintes (S11)}
+La carte de contraintes axiales (S11) montre une parfaite symétrie.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{page6_img-6.jpeg.jpeg}
+    \caption{Distribution des contraintes normales (S11).}
+    \label{fig:s11}
+\end{figure}
+La valeur maximale relevée par Abaqus est de \textbf{294,1 MPa}, ce qui correspond exactement à notre calcul théorique.
+
+\subsubsection{Déplacements}
+La flèche maximale (déplacement vertical U2) se situe au point d'application de la charge.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{page14_img-12.jpeg.jpeg}
+    \caption{Déformée et valeurs du déplacement vertical U2.}
+    \label{fig:u2_tp2}
+\end{figure}
+
+\section{Comparaison avec RDM7}
+Une modélisation rapide sous RDM7 (Module Ossatures) a permis de corroborer les résultats.
+Les diagrammes d'effort normal confirment la distribution des forces.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{page16_img-14.jpeg.jpeg}
+    \caption{Diagramme de l'effort normal sous RDM7.}
+    \label{fig:rdm7_tp2}
+\end{figure}
+
+\section{Conclusion}
+L'étude de ce treillis a montré une excellente concordance entre les trois méthodes :
+\begin{itemize}
+    \item \textbf{Théorie} : $\sigma_{max} \approx 294$ MPa.
+    \item \textbf{Abaqus} : $\sigma_{max} = 294,1$ MPa.
+    \item \textbf{RDM7} : Résultats similaires.
+\end{itemize}
+Cela valide notre modèle numérique par éléments finis et confirme que l'élément \textit{Truss} est parfaitement adapté pour ce type de structure articulée.
